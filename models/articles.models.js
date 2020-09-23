@@ -48,3 +48,13 @@ exports.addCommentByArticleId = (article_id, body) => {
       return comment[0];
     });
 };
+
+exports.selectCommentsByArticleId = (article_id, sortBy, sortOrder) => {
+  const sort_by = sortBy || 'created_at';
+  const order = sortOrder || 'desc';
+  return connection('comments')
+    .select('comment_id', 'author', 'votes', 'created_at', 'body')
+    .where({ article_id })
+    .orderBy(sort_by, order)
+    .returning('*');
+};

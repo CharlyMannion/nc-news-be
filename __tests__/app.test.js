@@ -347,13 +347,13 @@ describe('app', () => {
                 .expect(200)
                 .then(({ body: { comments } }) => {
                   expect(Object.keys(comments[0])).toEqual(
-                    expect.arrayContaining(
+                    expect.arrayContaining([
                       'comment_id',
                       'votes',
                       'created_at',
                       'author',
-                      'body'
-                    )
+                      'body',
+                    ])
                   );
                   expect(comments).toBeSortedBy('created_at', {
                     descending: true,
@@ -361,6 +361,31 @@ describe('app', () => {
                   expect(comments).toHaveLength(13);
                 });
             });
+            it('returns status 200 and object containing array sorted by created_at in ascending order when ascending order query provided', () => {
+              return request(app)
+                .get('/api/articles/1/comments?order=asc')
+                .expect(200)
+                .then(({ body: { comments } }) => {
+                  expect(comments).toBeSortedBy('created_at');
+                });
+            });
+            it('returns status 200 and object containing sorted array when sort_by query is provided', () => {
+              return request(app)
+                .get('/api/articles/1/comments?sort_by=votes')
+                .expect(200)
+                .then(({ body: { comments } }) => {
+                  expect(comments).toBeSortedBy('votes', { descending: true });
+                });
+            });
+            it('returns status 200 and object containing sorted arrau when both sort_by and order queries are provided', () => {
+              return request(app)
+                .get('/api/articles/1/comments?sort_by=votes&order=asc')
+                .expect(200)
+                .then(({ body: { comments } }) => {
+                  expect(comments).toBeSortedBy('votes');
+                });
+            });
+            it('', () => {});
           });
         });
       });
