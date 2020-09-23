@@ -209,7 +209,13 @@ describe('app', () => {
               });
           });
           it('returns status 400 when additional, not required property on body', () => {
-            //still to do
+            return request(app)
+              .patch('/api/articles/1')
+              .send({ inc_votes: 5, name: 'Mitch' })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
+              });
           });
         });
         describe('GET', () => {
@@ -320,10 +326,41 @@ describe('app', () => {
                   expect(msg).toBe('Bad request');
                 });
             });
-            it('returns status 400 when additional, not required property on body', () => {});
+            it('returns status 400 when additional, not required property on body', () => {
+              return request(app)
+                .post('/api/articles/1/comments')
+                .send({
+                  username: 'icellusedkars',
+                  body: 'Sheeps feet',
+                  name: 'Mitch',
+                })
+                .expect(400)
+                .then(({ body: { msg } }) => {
+                  expect(msg).toBe('Bad request');
+                });
+            });
           });
           describe('GET', () => {
-            it('', () => {});
+            it('returns status 200 and object containing array of comments, sorted by created_at in descending order when no queries provided', () => {
+              return request(app)
+                .get('/api/articles/1/comments')
+                .expect(200)
+                .then(({ body: { comments } }) => {
+                  expect(Object.keys(comments[0])).toEqual(
+                    expect.arrayContaining(
+                      'comment_id',
+                      'votes',
+                      'created_at',
+                      'author',
+                      'body'
+                    )
+                  );
+                  expect(comments).toBeSortedBy('created_at', {
+                    descending: true,
+                  });
+                  expect(comments).toHaveLength(13);
+                });
+            });
           });
         });
       });

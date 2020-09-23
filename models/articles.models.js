@@ -4,11 +4,15 @@ exports.delArticleById = (article_id) => {
   return connection('articles').where({ article_id }).del();
 };
 
-exports.updateArticleById = (article_id, inc_votes) => {
-  if (inc_votes && typeof inc_votes === 'number') {
+exports.updateArticleById = (article_id, body) => {
+  if (
+    body.inc_votes &&
+    typeof body.inc_votes === 'number' &&
+    Object.keys(body).length === 1
+  ) {
     return connection('articles')
       .where({ article_id })
-      .increment('votes', inc_votes)
+      .increment('votes', body.inc_votes)
       .returning('*')
       .then((updatedArticle) => {
         if (updatedArticle[0] === undefined)

@@ -23,9 +23,9 @@ exports.deleteArticleById = (req, res, next) => {
 exports.patchArticleById = (req, res, next) => {
   const {
     params: { article_id },
-    body: { inc_votes },
+    body,
   } = req;
-  updateArticleById(article_id, inc_votes)
+  updateArticleById(article_id, body)
     .then((updatedArticle) => {
       res.send({ updatedArticle });
     })
@@ -54,3 +54,5 @@ exports.postCommentByArticleId = (req, res, next) => {
     })
     .catch(next);
 };
+
+exports.getCommentsByArticleId = (req, res, next) => {};

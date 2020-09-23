@@ -28,8 +28,7 @@ exports.PSQLErrorHandler = (err, req, res, next) => {
     const { constraint } = err;
     const formattedErrorMsg = formatErrorMsg(constraint);
     res.status(404).send({ msg: `${formattedErrorMsg} does not exist` });
-  }
-  if (PSQLErrorCodes.hasOwnProperty(err.code)) {
+  } else if (PSQLErrorCodes.hasOwnProperty(err.code)) {
     const { status, msg } = PSQLErrorCodes[err.code];
     res.status(status).send({ msg });
   } else next(err);
