@@ -1,6 +1,10 @@
 const data = require('../data/index');
 const { topicsData, articlesData, commentsData, usersData } = data;
-const { formatTime, makeRefObj, formatComments } = require('../utils/data-manipulation');
+const {
+  formatTime,
+  makeRefObj,
+  formatComments,
+} = require('../utils/data-manipulation');
 
 exports.seed = function (knex) {
   return knex.migrate
@@ -19,9 +23,9 @@ exports.seed = function (knex) {
       return knex('articles').insert(formattedArticles).returning('*');
     })
     .then((articles) => {
-      const articleRefObj = makeRefObj(articles, 'title', 'article_id')
-      const formattedComments = formatComments(commentsData, articleRefObj)
-      const commentsWithDate = formatTime(formattedComments)
+      const articleRefObj = makeRefObj(articles, 'title', 'article_id');
+      const formattedComments = formatComments(commentsData, articleRefObj);
+      const commentsWithDate = formatTime(formattedComments);
       return knex('comments').insert(commentsWithDate).returning('*');
     });
 };

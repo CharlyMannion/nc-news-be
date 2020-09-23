@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "seed": "knex seed:run",
+    "seed-dev": "knex seed:run",
+    "seed-test": "NODE_ENV=test knex seed:run",
     "test-utils": "jest __tests__/utils.test.js",
     "test-app": "jest __tests__/app.test.js",
     "migrate-make": "knex migrate:make",

@@ -1,0 +1,46 @@
+const connection = require('../db/connection');
+
+exports.delArticleById = (article_id) => {
+  return connection('articles').where({ article_id }).del();
+};
+
+exports.updateArticleById = (article_id, inc_votes) => {
+  if (inc_votes && typeof inc_votes === 'number') {
+    return connection('articles')
+      .where({ article_id })
+      .increment('votes', inc_votes)
+      .returning('*')
+      .then((updatedArticle) => {
+        if (updatedArticle[0] === undefined)
+          return Promise.reject({ status: 404, msg: 'Article does not exist' });
+        else return updatedArticle[0];
+      });
+  } else {
+    return Promise.reject({ status: 400, msg: 'Bad request' });
+  }
+};
+
+exports.selectArticleById = (article_id) => {
+  return connection('articles')
+    .select('articles.*')
+    .count({ comment_count: 'comments.article_id' })
+    .where('articles.article_id', article_id)
+    .leftJoin('comments', 'articles.article_id', 'comments.article_id')
+    .groupBy('articles.article_id')
+    .then((article) => {
+      if (article[0] === undefined)
+        return Promise.reject({ status: 404, msg: 'Article does not exist' });
+      else return article[0];
+    });
+};
+
+exports.addCommentByArticleId = (article_id, body) => {
+  body.author = body.username;
+  delete body.username;
+  return connection('comments')
+    .insert({ ...body, article_id })
+    .returning('*')
+    .then((comment) => {
+      return comment[0];
+    });
+};

@@ -1,13 +1,22 @@
 const express = require('express');
 const app = express();
 const apiRouter = require('./routes/api.routes.js');
-const { send404Error, send500Error } = require('./errors');
+const {
+  invalidEndpointHandler,
+  customErrorHandler,
+  send500Error,
+  PSQLErrorHandler,
+} = require('./errors');
 
 app.use(express.json());
 
-app.use('/api', apiRouter);
+//sendEndpoints function in api.controllers.js
 
-app.use('/*', send404Error);
+app.use('/api', apiRouter);
+app.use('/*', invalidEndpointHandler);
+
+app.use(customErrorHandler);
+app.use(PSQLErrorHandler);
 app.use(send500Error);
 
 module.exports = app;
