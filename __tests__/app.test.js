@@ -746,7 +746,6 @@ describe('app', () => {
               .send({ inc_votes: 5 })
               .expect(200)
               .then(({ body: { updatedComment } }) => {
-                console.log(updatedComment);
                 expect(updatedComment.votes).toBe(21);
                 expect(Object.keys(updatedComment)).toEqual(
                   expect.arrayContaining([
@@ -767,6 +766,42 @@ describe('app', () => {
               .expect(404)
               .then(({ body: { msg } }) => {
                 expect(msg).toBe('Comment does not exist');
+              });
+          });
+          it('returns status 400 when comment_id is not a number', () => {
+            return request(app)
+              .patch('/api/comments/one')
+              .send({ inc_votes: 5 })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
+              });
+          });
+          it('returns status 400 when inc_votes not included on body', () => {
+            return request(app)
+              .patch('/api/comments/1')
+              .send({ votes: 5 })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
+              });
+          });
+          it('returns status 400 when inc_votes value is not a number', () => {
+            return request(app)
+              .patch('/api/comments/1')
+              .send({ inc_votes: null })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
+              });
+          });
+          it('returns status 400 when additional keys on body', () => {
+            return request(app)
+              .patch('/api/comments/1')
+              .send({ inc_votes: 5, name: 'sheep' })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
               });
           });
         });
