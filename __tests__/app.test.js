@@ -25,6 +25,7 @@ describe('app', () => {
       const methodPromises = invalidMethods.map((method) => {
         return request(app)
           [method]('/api')
+          .expect(405)
           .then(({ body: { msg } }) => {
             expect(msg).toBe('Method not allowed');
           });
@@ -97,6 +98,119 @@ describe('app', () => {
       });
     });
     describe('/articles', () => {
+      it('returns status 405 when invalid method', () => {
+        const invalidMethods = ['delete', 'patch', 'put'];
+        const methodPromises = invalidMethods.map((method) => {
+          return request(app)
+            [method]('/api/articles')
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Method not allowed');
+            });
+        });
+        return Promise.all(methodPromises);
+      });
+      describe('GET', () => {
+        it('returns status 200 and object containing array of articles which include comment_count, sorted by date in descending order when no queries provided', () => {
+          return request(app)
+            .get('/api/articles')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(12);
+              expect(Object.keys(articles[0])).toEqual(
+                expect.arrayContaining([
+                  'author',
+                  'title',
+                  'article_id',
+                  'topic',
+                  'created_at',
+                  'votes',
+                  'comment_count',
+                ])
+              );
+              expect(articles).toBeSortedBy('created_at', { descending: true });
+            });
+        });
+        it('returns status 200 and object containing sorted array when sort_by and order queries provided', () => {
+          return request(app)
+            .get('/api/articles?sort_by=author&order=asc')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toBeSortedBy('author');
+            });
+        });
+        it('returns status 200 and object containing only articles by specific user when author query provided', () => {
+          return request(app)
+            .get('/api/articles?author=icellusedkars')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              articles.forEach((article) => {
+                expect(article.author).toBe('icellusedkars');
+              });
+            });
+        });
+        it('returns status 200 and object containing only articles on specific topic when topic query provided', () => {
+          return request(app)
+            .get('/api/articles?topic=mitch')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              articles.forEach((article) => {
+                expect(article.topic).toBe('mitch');
+              });
+            });
+        });
+        it('returns status 200 and object containing empty array when specified author query has no articles', () => {
+          return request(app)
+            .get('/api/articles?author=lurker')
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).toEqual({ articles: [] });
+            });
+        });
+        it('returns status 200 and object containing empty array when specified topic query has no articles', () => {
+          return request(app)
+            .get('/api/articles?topic=paper')
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).toEqual({ articles: [] });
+            });
+        });
+        it('returns status 400 when sort_by column does not exist', () => {
+          return request(app)
+            .get('/api/articles?sort_by=banana')
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 when order query is not asc or desc', () => {
+          return request(app)
+            .get('/api/articles?order=ascending')
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 404 when author in query does not exist', () => {
+          return request(app)
+            .get('/api/articles?author=banana')
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('User does not exist');
+            });
+        });
+        it('returns status 404 when topic in query does not exist', () => {
+          return request(app)
+            .get('/api/articles?topic=banana')
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Topic does not exist');
+            });
+        });
+      });
+      describe('POST', () => {
+        it('', () => {});
+      });
       describe('/:article_id', () => {
         it('returns status 405 when invalid method', () => {
           const invalidMethods = ['post', 'put'];
@@ -263,6 +377,7 @@ describe('app', () => {
             const methodPromises = invalidMethods.map((method) => {
               return request(app)
                 [method]('/api/articles/1/comments')
+                .expect(405)
                 .then(({ body: { msg } }) => {
                   expect(msg).toBe('Method not allowed');
                 });
@@ -377,7 +492,7 @@ describe('app', () => {
                   expect(comments).toBeSortedBy('votes', { descending: true });
                 });
             });
-            it('returns status 200 and object containing sorted arrau when both sort_by and order queries are provided', () => {
+            it('returns status 200 and object containing sorted array when both sort_by and order queries are provided', () => {
               return request(app)
                 .get('/api/articles/1/comments?sort_by=votes&order=asc')
                 .expect(200)
@@ -385,7 +500,46 @@ describe('app', () => {
                   expect(comments).toBeSortedBy('votes');
                 });
             });
-            it('', () => {});
+            it('returns status 200 and object containing empty array when article has no comments', () => {
+              return request(app)
+                .get('/api/articles/2/comments')
+                .expect(200)
+                .then(({ body: { comments } }) => {
+                  expect(comments).toEqual([]);
+                });
+            });
+            it('returns status 404 when article does not exist', () => {
+              return request(app)
+                .get('/api/articles/99/comments')
+                .expect(404)
+                .then(({ body: { msg } }) => {
+                  expect(msg).toBe('Article does not exist');
+                });
+            });
+            it('returns status 400 when article id is wrong datatype', () => {
+              return request(app)
+                .get('/api/articles/one/comments')
+                .expect(400)
+                .then(({ body: { msg } }) => {
+                  expect(msg).toBe('Bad request');
+                });
+            });
+            it('returns status 400 when sort_by value is not valid', () => {
+              return request(app)
+                .get('/api/articles/1/comments?sort_by=age')
+                .expect(400)
+                .then(({ body: { msg } }) => {
+                  expect(msg).toBe('Bad request');
+                });
+            });
+            it('returns status 400 when order query is not asc or desc', () => {
+              return request(app)
+                .get('/api/articles/1/comments?order=ascending')
+                .expect(400)
+                .then(({ body: { msg } }) => {
+                  expect(msg).toBe('Invalid sorting order');
+                });
+            });
           });
         });
       });

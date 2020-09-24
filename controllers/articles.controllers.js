@@ -1,9 +1,9 @@
 const {
   delArticleById,
   updateArticleById,
-  selectArticleById,
   addCommentByArticleId,
   selectCommentsByArticleId,
+  selectArticles,
 } = require('../models/articles.models');
 
 exports.deleteArticleById = (req, res, next) => {
@@ -33,13 +33,15 @@ exports.patchArticleById = (req, res, next) => {
     .catch(next);
 };
 
-exports.getArticleById = (req, res, next) => {
+exports.getArticles = (req, res, next) => {
   const {
     params: { article_id },
+    query: { sort_by, order, author, topic },
   } = req;
-  selectArticleById(article_id)
-    .then((article) => {
-      res.send({ article });
+  selectArticles(article_id, sort_by, order, author, topic)
+    .then((articles) => {
+      if (Array.isArray(articles)) res.send({ articles });
+      else res.send({ article: articles });
     })
     .catch(next);
 };
