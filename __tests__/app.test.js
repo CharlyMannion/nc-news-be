@@ -209,7 +209,183 @@ describe('app', () => {
         });
       });
       describe('POST', () => {
-        it('', () => {});
+        it('returns status 201 and object containing posted article', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(201)
+            .then(({ body: { postedArticle } }) => {
+              expect(Object.keys(postedArticle)).toEqual(
+                expect.arrayContaining([
+                  'article_id',
+                  'title',
+                  'votes',
+                  'topic',
+                  'author',
+                  'created_at',
+                  'body',
+                ])
+              );
+              expect(postedArticle.article_id).toBe(13);
+            });
+        });
+        it('returns status 400 if there are any keys missing on body', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 if there are keys which are not needed on body', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+              comment: 'I like it',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 if votes is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 'ten thousand',
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 if title is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: null,
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 if topic is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: null,
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 404 if topic is valid but does not exist', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'banana',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+            })
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Topic does not exist');
+            });
+        });
+        it('returns status 400 if author is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: null,
+              body: 'This is my masterpiece',
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 404 if author is valid but does not exist', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: 'banana',
+              body: 'This is my masterpiece',
+            })
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Author does not exist');
+            });
+        });
+        it('returns status 400 if created_at is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: 'This is my masterpiece',
+              created_at: false,
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
+        it('returns status 400 if body is wrong datatype', () => {
+          return request(app)
+            .post('/api/articles')
+            .send({
+              title: 'My masterpiece',
+              votes: 10000,
+              topic: 'mitch',
+              author: 'icellusedkars',
+              body: false,
+            })
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe('Bad request');
+            });
+        });
       });
       describe('/:article_id', () => {
         it('returns status 405 when invalid method', () => {
@@ -226,7 +402,12 @@ describe('app', () => {
         });
         describe('DELETE', () => {
           it('returns status 204 when deleting article with associated comments', () => {
-            return request(app).del('/api/articles/1').expect(204);
+            return request(app)
+              .del('/api/articles/1')
+              .expect(204)
+              .then((res) => {
+                return request(app).get('/api/articles/1').expect(404);
+              });
           });
           it('returns 404 when deleting an article that does not exist', () => {
             return request(app)
@@ -411,7 +592,7 @@ describe('app', () => {
                 .send({ username: 'icellusedkars', body: 'Sheeps feet' })
                 .expect(404)
                 .then(({ body: { msg } }) => {
-                  expect(msg).toBe('Article_id does not exist');
+                  expect(msg).toBe('Article does not exist');
                 });
             });
             it('returns status 404 when user does not exist', () => {
@@ -540,6 +721,53 @@ describe('app', () => {
                   expect(msg).toBe('Invalid sorting order');
                 });
             });
+          });
+        });
+      });
+    });
+    describe('/comments', () => {
+      describe('/:comment_id', () => {
+        it('returns status 405 when invalid method', () => {
+          const invalidMethods = ['get', 'post', 'put'];
+          const methodPromises = invalidMethods.map((method) => {
+            return request(app)
+              [method]('/api/comments/1')
+              .expect(405)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Method not allowed');
+              });
+          });
+          return Promise.all(methodPromises);
+        });
+        describe('PATCH', () => {
+          it('returns status 200 and object containing updated comment', () => {
+            return request(app)
+              .patch('/api/comments/1')
+              .send({ inc_votes: 5 })
+              .expect(200)
+              .then(({ body: { updatedComment } }) => {
+                console.log(updatedComment);
+                expect(updatedComment.votes).toBe(21);
+                expect(Object.keys(updatedComment)).toEqual(
+                  expect.arrayContaining([
+                    'comment_id',
+                    'author',
+                    'article_id',
+                    'votes',
+                    'created_at',
+                    'body',
+                  ])
+                );
+              });
+          });
+          it('returns status 404 when invalid comment_id', () => {
+            return request(app)
+              .patch('/api/comments/99')
+              .send({ inc_votes: 5 })
+              .expect(404)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Comment does not exist');
+              });
           });
         });
       });

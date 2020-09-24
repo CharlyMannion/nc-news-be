@@ -56,6 +56,8 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         ]);
       })
       .then(([articles, articleChecker, authorChecker, topicChecker]) => {
+        //can the first 3 'if' statements be refactored to be drier?
+        //do Promise.reject in checkExists function
         if (articleChecker === undefined)
           return Promise.reject({ status: 404, msg: 'Article does not exist' });
         if (authorChecker === undefined)
@@ -63,14 +65,25 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         if (topicChecker === undefined)
           return Promise.reject({ status: 404, msg: 'Topic does not exist' });
         if (authorChecker && articles[0] === undefined) return articles;
-        //author exists but no associated articles
         if (topicChecker && articles[0] === undefined) return articles;
-        //topic exists but no associated articles
         if (!authorChecker && !topicChecker && articles[0] === undefined)
           return Promise.reject({ status: 404, msg: 'Article does not exist' });
-        //
         if (articles.length === 1) return articles[0];
         else return articles;
+      });
+  } else {
+    return Promise.reject({ status: 400, msg: 'Bad request' });
+  }
+};
+
+exports.insertArticle = (articleBody) => {
+  const { title, topic, author, body } = articleBody;
+  if (title && topic && author && body) {
+    return connection('articles')
+      .insert(articleBody)
+      .returning('*')
+      .then((postedArticle) => {
+        return postedArticle[0];
       });
   } else {
     return Promise.reject({ status: 400, msg: 'Bad request' });

@@ -10,7 +10,11 @@ const {
 
 app.use(express.json());
 
+//README is missing information - POST /api/articles
+
+//refactor selectArticles at end
 //sendEndpoints function in api.controllers.js
+//refactor so there is error handling in checkExists function
 
 app.use('/api', apiRouter);
 app.use('/*', invalidEndpointHandler);

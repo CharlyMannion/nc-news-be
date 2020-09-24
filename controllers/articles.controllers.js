@@ -4,6 +4,7 @@ const {
   addCommentByArticleId,
   selectCommentsByArticleId,
   selectArticles,
+  insertArticle,
 } = require('../models/articles.models');
 
 exports.deleteArticleById = (req, res, next) => {
@@ -42,6 +43,15 @@ exports.getArticles = (req, res, next) => {
     .then((articles) => {
       if (Array.isArray(articles)) res.send({ articles });
       else res.send({ article: articles });
+    })
+    .catch(next);
+};
+
+exports.postArticle = (req, res, next) => {
+  const { body } = req;
+  insertArticle(body)
+    .then((postedArticle) => {
+      res.status(201).send({ postedArticle });
     })
     .catch(next);
 };

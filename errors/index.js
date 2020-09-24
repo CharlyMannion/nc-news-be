@@ -23,6 +23,10 @@ exports.PSQLErrorHandler = (err, req, res, next) => {
       status: 400,
       msg: 'Bad request',
     },
+    22007: {
+      status: 400,
+      msg: 'Bad request',
+    },
   };
   if (err.code === '23503') {
     const { constraint } = err;
