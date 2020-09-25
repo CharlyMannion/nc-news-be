@@ -32,6 +32,16 @@ describe('app', () => {
       });
       return Promise.all(methodPromises);
     });
+    describe('GET', () => {
+      it.only('returns status 200 and object containing array of endpoints', () => {
+        return request(app)
+          .get('/api')
+          .expect(200)
+          .then((res) => {
+            console.log(res.body);
+          });
+      });
+    });
     describe('/topics', () => {
       it('returns status 405 when given an invalid method', () => {
         const invalidMethods = ['delete', 'patch', 'put'];
@@ -799,6 +809,35 @@ describe('app', () => {
             return request(app)
               .patch('/api/comments/1')
               .send({ inc_votes: 5, name: 'sheep' })
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Bad request');
+              });
+          });
+        });
+        describe('DELETE', () => {
+          it('returns status 204', () => {
+            return request(app)
+              .delete('/api/comments/1')
+              .expect(204)
+              .then(() => {
+                return request(app)
+                  .patch('/api/comments/1')
+                  .send({ inc_votes: 5 })
+                  .expect(404);
+              });
+          });
+          it('returns status 404 when comment does not exist', () => {
+            return request(app)
+              .delete('/api/comments/99')
+              .expect(404)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe('Comment does not exist');
+              });
+          });
+          it('returns status 400 when comment id is wrong datatype', () => {
+            return request(app)
+              .delete('/api/comments/one')
               .expect(400)
               .then(({ body: { msg } }) => {
                 expect(msg).toBe('Bad request');

@@ -26,3 +26,7 @@ exports.updateCommentById = (body, comment_id) => {
     return Promise.reject({ status: 400, msg: 'Bad request' });
   }
 };
+
+exports.delCommentById = (comment_id) => {
+  return connection('comments').where({ comment_id }).del();
+};
