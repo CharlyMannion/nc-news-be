@@ -6,10 +6,6 @@ exports.delArticleById = (article_id) => {
 };
 
 exports.updateArticleById = (article_id, body) => {
-  /*
-Can this function be done differently to allow patching of other values?
-Currently, if we wanted to patch author but no inc_votes key was provided then we would send a 400 - bad request which is not what we want
-*/
   if (
     body.inc_votes &&
     typeof body.inc_votes === 'number' &&
@@ -30,7 +26,6 @@ Currently, if we wanted to patch author but no inc_votes key was provided then w
 };
 
 exports.selectArticles = (article_id, sort_by, order, author, topic) => {
-  //can the sortOrder error handling be done in a different way??
   const sortBy = sort_by || 'created_at';
   const sortOrder = order || 'desc';
   if (sortOrder === 'asc' || sortOrder === 'desc') {
@@ -56,8 +51,6 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         ]);
       })
       .then(([articles, articleChecker, authorChecker, topicChecker]) => {
-        //can the first 3 'if' statements be refactored to be drier?
-        //do Promise.reject in checkExists function
         if (articleChecker === undefined)
           return Promise.reject({ status: 404, msg: 'Article does not exist' });
         if (authorChecker === undefined)
@@ -68,8 +61,7 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         if (topicChecker && articles[0] === undefined) return articles;
         if (!authorChecker && !topicChecker && articles[0] === undefined)
           return Promise.reject({ status: 404, msg: 'Article does not exist' });
-        if (articles.length === 1) return articles[0];
-        else return articles;
+        return articles;
       });
   } else {
     return Promise.reject({ status: 400, msg: 'Bad request' });

@@ -33,12 +33,14 @@ describe('app', () => {
       return Promise.all(methodPromises);
     });
     describe('GET', () => {
-      it.only('returns status 200 and object containing array of endpoints', () => {
+      it('returns status 200 and object containing array of endpoints', () => {
         return request(app)
           .get('/api')
           .expect(200)
-          .then((res) => {
-            console.log(res.body);
+          .then(({ body: { endpoints } }) => {
+            expect(Object.keys(endpoints[0])).toEqual(
+              expect.arrayContaining(['path', 'methods', 'middleware'])
+            );
           });
       });
     });
@@ -528,10 +530,10 @@ describe('app', () => {
             return request(app)
               .get('/api/articles/1')
               .expect(200)
-              .then(({ body: { article } }) => {
-                expect(article.article_id).toBe(1);
-                expect(article.comment_count).toBe('13');
-                expect(Object.keys(article)).toEqual(
+              .then(({ body: { articles } }) => {
+                expect(articles[0].article_id).toBe(1);
+                expect(articles[0].comment_count).toBe('13');
+                expect(Object.keys(articles[0])).toEqual(
                   expect.arrayContaining([
                     'author',
                     'title',

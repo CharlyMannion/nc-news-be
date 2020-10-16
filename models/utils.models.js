@@ -1,6 +1,7 @@
 const connection = require('../db/connection');
 
 exports.checkExists = (table, column, query) => {
+  //if (!query) return
   return connection(table)
     .first()
     .where({ [column]: query });
