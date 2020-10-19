@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const apiRouter = require('./routes/api.routes.js');
 const {
@@ -11,6 +12,12 @@ const {
 const listEndpoints = require('express-list-endpoints');
 
 app.use(express.json());
+
+app.use(cors());
+
+app.get('/products/:id', function (req, res, next) {
+  res.json({ msg: 'This is CORS-enabled for all origins!' });
+});
 
 app
   .route('/api')

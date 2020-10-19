@@ -38,6 +38,7 @@ describe('app', () => {
           .get('/api')
           .expect(200)
           .then(({ body: { endpoints } }) => {
+            console.log(endpoints);
             expect(Object.keys(endpoints[0])).toEqual(
               expect.arrayContaining(['path', 'methods', 'middleware'])
             );
