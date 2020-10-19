@@ -532,9 +532,9 @@ describe('app', () => {
               .get('/api/articles/1')
               .expect(200)
               .then(({ body: { articles } }) => {
-                expect(articles[0].article_id).toBe(1);
-                expect(articles[0].comment_count).toBe('13');
-                expect(Object.keys(articles[0])).toEqual(
+                expect(articles.article_id).toBe(1);
+                expect(articles.comment_count).toBe('13');
+                expect(Object.keys(articles)).toEqual(
                   expect.arrayContaining([
                     'author',
                     'title',

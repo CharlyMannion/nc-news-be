@@ -61,7 +61,8 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         if (topicChecker && articles[0] === undefined) return articles;
         if (!authorChecker && !topicChecker && articles[0] === undefined)
           return Promise.reject({ status: 404, msg: 'Article does not exist' });
-        return articles;
+        if (article_id) return articles[0];
+        else return articles;
       });
   } else {
     return Promise.reject({ status: 400, msg: 'Bad request' });
