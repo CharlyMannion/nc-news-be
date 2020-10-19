@@ -41,7 +41,8 @@ exports.getArticles = (req, res, next) => {
   } = req;
   selectArticles(article_id, sort_by, order, author, topic)
     .then((articles) => {
-      res.send({ articles });
+      if (Array.isArray(articles)) res.send({ articles });
+      else res.send({ article: articles });
     })
     .catch(next);
 };
