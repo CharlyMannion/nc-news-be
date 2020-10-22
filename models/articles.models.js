@@ -132,13 +132,26 @@ exports.addCommentByArticleId = (article_id, body) => {
     });
 };
 
-exports.selectCommentsByArticleId = (article_id, sortBy, sortOrder) => {
+exports.selectCommentsByArticleId = (
+  article_id,
+  sortBy,
+  sortOrder,
+  p,
+  limit
+) => {
+  const per_page = limit || 10;
+  const currentPage = p || 1;
+  if (currentPage < 1) currentPage = 1;
+  const offsetAmount = (currentPage - 1) * per_page;
+  console.log(offsetAmount);
   const sort_by = sortBy || 'created_at';
   const order = sortOrder || 'desc';
   if (order === 'asc' || order === 'desc') {
     return connection('comments')
       .select('comment_id', 'author', 'votes', 'created_at', 'body')
       .where({ article_id })
+      .limit(per_page)
+      .offset(offsetAmount)
       .orderBy(sort_by, order)
       .returning('*')
       .then((comments) => {
