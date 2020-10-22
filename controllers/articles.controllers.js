@@ -40,10 +40,9 @@ exports.getArticles = (req, res, next) => {
     query: { sort_by, order, author, topic, p, limit },
   } = req;
   selectArticles(article_id, sort_by, order, author, topic, p, limit)
-    .then((articles) => {
-      if (Array.isArray(articles))
-        res.send({ articles, total_count: articles.length });
-      else res.send({ article: articles });
+    .then(({ articles, total_count }) => {
+      if (Array.isArray(articles)) res.send({ articles, total_count });
+      else res.send({ article: articles, total_count });
     })
     .catch(next);
 };

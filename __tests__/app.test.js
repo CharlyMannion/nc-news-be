@@ -190,24 +190,24 @@ describe('app', () => {
           return request(app)
             .get('/api/articles')
             .expect(200)
-            .then(({ body: { total_count } }) => {
-              expect(total_count).toBe(10);
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(10);
             });
         });
         it('returns status 200 and object containing prescribed amount of items when limit provided', () => {
           return request(app)
             .get('/api/articles?limit=5')
             .expect(200)
-            .then(({ body: { total_count } }) => {
-              expect(total_count).toBe(5);
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(5);
             });
         });
         it('returns status 200 and second page of items when p query provided', () => {
           return request(app)
             .get('/api/articles?p=2')
             .expect(200)
-            .then(({ body: { total_count } }) => {
-              expect(total_count).toBe(2);
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(2);
             });
         });
         it('returns status 200 when p and limit queries provided', () => {

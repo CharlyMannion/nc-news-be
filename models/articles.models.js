@@ -57,6 +57,12 @@ exports.selectArticles = (
       })
       .then((articles) => {
         return Promise.all([
+          connection('articles')
+            .select('*')
+            .modify((query) => {
+              if (author) query.where('articles.author', author);
+              if (topic) query.where('articles.topic', topic);
+            }),
           articles,
           article_id
             ? checkExists('articles', 'article_id', article_id)
@@ -65,26 +71,37 @@ exports.selectArticles = (
           topic ? checkExists('topics', 'slug', topic) : false,
         ]);
       })
-      .then(([articles, articleChecker, authorChecker, topicChecker]) => {
-        if (articleChecker === undefined)
-          return Promise.reject({
-            status: 404,
-            msg: 'Article does not exist',
-          });
-        if (authorChecker === undefined)
-          return Promise.reject({ status: 404, msg: 'User does not exist' });
-        if (topicChecker === undefined)
-          return Promise.reject({ status: 404, msg: 'Topic does not exist' });
-        if (authorChecker && articles[0] === undefined) return articles;
-        if (topicChecker && articles[0] === undefined) return articles;
-        if (!authorChecker && !topicChecker && articles[0] === undefined)
-          return Promise.reject({
-            status: 404,
-            msg: 'Article does not exist',
-          });
-        if (article_id) return articles[0];
-        else return articles;
-      });
+      .then(
+        ([
+          allArticles,
+          articles,
+          articleChecker,
+          authorChecker,
+          topicChecker,
+        ]) => {
+          if (articleChecker === undefined)
+            return Promise.reject({
+              status: 404,
+              msg: 'Article does not exist',
+            });
+          if (authorChecker === undefined)
+            return Promise.reject({ status: 404, msg: 'User does not exist' });
+          if (topicChecker === undefined)
+            return Promise.reject({ status: 404, msg: 'Topic does not exist' });
+          if (authorChecker && articles[0] === undefined)
+            return { articles, total_count: allArticles.length };
+          if (topicChecker && articles[0] === undefined)
+            return { articles, total_count: allArticles.length };
+          if (!authorChecker && !topicChecker && articles[0] === undefined)
+            return Promise.reject({
+              status: 404,
+              msg: 'Article does not exist',
+            });
+          if (article_id)
+            return { articles: articles[0], total_count: allArticles.length };
+          else return { articles, total_count: allArticles.length };
+        }
+      );
   } else {
     return Promise.reject({ status: 400, msg: 'Bad request' });
   }
