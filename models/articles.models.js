@@ -1,3 +1,4 @@
+const { offset } = require('../db/connection');
 const connection = require('../db/connection');
 const { checkExists } = require('./utils.models');
 
@@ -25,13 +26,27 @@ exports.updateArticleById = (article_id, body) => {
   }
 };
 
-exports.selectArticles = (article_id, sort_by, order, author, topic) => {
+exports.selectArticles = (
+  article_id,
+  sort_by,
+  order,
+  author,
+  topic,
+  p,
+  limit
+) => {
   const sortBy = sort_by || 'created_at';
   const sortOrder = order || 'desc';
+  const per_page = limit || 10;
+  const currentPage = p || 1;
+  if (currentPage < 1) currentPage = 1;
+  const offsetAmount = (currentPage - 1) * per_page;
   if (sortOrder === 'asc' || sortOrder === 'desc') {
     return connection('articles')
       .select('articles.*')
       .count({ comment_count: 'comments.article_id' })
+      .limit(per_page)
+      .offset(offsetAmount)
       .leftJoin('comments', 'articles.article_id', 'comments.article_id')
       .groupBy('articles.article_id')
       .orderBy(sortBy, sortOrder)
@@ -52,7 +67,10 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
       })
       .then(([articles, articleChecker, authorChecker, topicChecker]) => {
         if (articleChecker === undefined)
-          return Promise.reject({ status: 404, msg: 'Article does not exist' });
+          return Promise.reject({
+            status: 404,
+            msg: 'Article does not exist',
+          });
         if (authorChecker === undefined)
           return Promise.reject({ status: 404, msg: 'User does not exist' });
         if (topicChecker === undefined)
@@ -60,7 +78,10 @@ exports.selectArticles = (article_id, sort_by, order, author, topic) => {
         if (authorChecker && articles[0] === undefined) return articles;
         if (topicChecker && articles[0] === undefined) return articles;
         if (!authorChecker && !topicChecker && articles[0] === undefined)
-          return Promise.reject({ status: 404, msg: 'Article does not exist' });
+          return Promise.reject({
+            status: 404,
+            msg: 'Article does not exist',
+          });
         if (article_id) return articles[0];
         else return articles;
       });

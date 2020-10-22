@@ -38,7 +38,6 @@ describe('app', () => {
           .get('/api')
           .expect(200)
           .then(({ body: { endpoints } }) => {
-            console.log(endpoints);
             expect(Object.keys(endpoints[0])).toEqual(
               expect.arrayContaining(['path', 'methods', 'middleware'])
             );
@@ -129,7 +128,6 @@ describe('app', () => {
             .get('/api/articles')
             .expect(200)
             .then(({ body: { articles } }) => {
-              expect(articles).toHaveLength(12);
               expect(Object.keys(articles[0])).toEqual(
                 expect.arrayContaining([
                   'author',
@@ -186,6 +184,38 @@ describe('app', () => {
             .expect(200)
             .then(({ body }) => {
               expect(body).toEqual({ articles: [] });
+            });
+        });
+        it('returns status 200 and object containing first ten items when no limit or page query provided', () => {
+          return request(app)
+            .get('/api/articles')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(10);
+            });
+        });
+        it('returns status 200 and object containing prescribed amount of items when limit provided', () => {
+          return request(app)
+            .get('/api/articles?limit=5')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(5);
+            });
+        });
+        it('returns status 200 and second page of items when p query provided', () => {
+          return request(app)
+            .get('/api/articles?p=2')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(2);
+            });
+        });
+        it('returns status 200 when p and limit queries provided', () => {
+          return request(app)
+            .get('/api/articles?p=2&limit=5')
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toHaveLength(5);
             });
         });
         it('returns status 400 when sort_by column does not exist', () => {
@@ -531,10 +561,10 @@ describe('app', () => {
             return request(app)
               .get('/api/articles/1')
               .expect(200)
-              .then(({ body: { articles } }) => {
-                expect(articles.article_id).toBe(1);
-                expect(articles.comment_count).toBe('13');
-                expect(Object.keys(articles)).toEqual(
+              .then(({ body: { article } }) => {
+                expect(article.article_id).toBe(1);
+                expect(article.comment_count).toBe('13');
+                expect(Object.keys(article)).toEqual(
                   expect.arrayContaining([
                     'author',
                     'title',

@@ -37,9 +37,9 @@ exports.patchArticleById = (req, res, next) => {
 exports.getArticles = (req, res, next) => {
   const {
     params: { article_id },
-    query: { sort_by, order, author, topic },
+    query: { sort_by, order, author, topic, p, limit },
   } = req;
-  selectArticles(article_id, sort_by, order, author, topic)
+  selectArticles(article_id, sort_by, order, author, topic, p, limit)
     .then((articles) => {
       if (Array.isArray(articles)) res.send({ articles });
       else res.send({ article: articles });
